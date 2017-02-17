@@ -17,14 +17,15 @@ using namespace arma;
 //template functions
 void print_vals(mat , vec , vec ,int);
 
-// performs gauss elimination
-// for general matrix
+// performs jacobi algorithm
+// to find eigenvalues/vectors
 int main(int argc, char** argv) {
+    //FOR UNIT TESTING USE n = 3 AND pmax = 10
     int n;
     cout<<"n: ";
     cin >> n;
     
-    double convergence=0.001;
+    double convergence=0.01;
     double pmin=0;
     double pmax=10;      
     double h = (pmax-pmin)/(double(n));
@@ -100,11 +101,11 @@ int main(int argc, char** argv) {
 //        cout<<"p: "<<p<<" q: "<<q<<endl;
 
         //unit test for max(a(i,j))    
-        if(n==4 && count==1 && pmax=10){  
+        if(n==3 && count==1 && pmax==10){  
             cout<<endl<<"Testing max non-diagonal matrix element"<<endl;
-            cout<<"Results should be: max = -0.16 p,q = 3,2"<<endl;
+            cout<<"Results should be: max = -0.09 p,q = 2,1"<<endl;
             cout<<"Results are: max = "<<apq<<" p,q = "<<p<<","<<q<<endl;
-            if(apq==-0.16 && p==3 && q==2)
+            if(abs(-0.09-apq)<0.001 && p==2 && q==1)
                 cout<<"Test passed"<<endl<<endl;
             else
                 cout<<"Test failed"<<endl<<endl;
@@ -148,6 +149,19 @@ int main(int argc, char** argv) {
         cout<<"After diagonalization"<<endl;
         print_vals(a,b,v,n);
         cout<<endl;
+    }
+
+    //unit test for eigenvalues)    
+    if(n==3 && pmax==10){
+        cout<<endl<<"Testing eigenvalues"<<endl;
+        cout<<"Results should be: 0.1776, 3.513, 6.848"<<endl;
+        cout<<"Results are: "<<a(0,0)<<", "<<a(1,1)<<", "<<a(2,2)<<endl;
+        if(abs(0.1776-a(0,0))<0.01 && abs(3.513-a(1,1))<0.01 
+                && abs(6.848-a(2,2))<0.015){
+            cout<<"Test passed"<<endl<<endl;
+        }
+        else
+            cout<<"Test failed"<<endl<<endl;
     }
     
     cout<<"Diagonalization took "<<count<<" iterations"<<endl;
