@@ -15,25 +15,30 @@ using namespace std;
 using namespace arma;
 
 //template functions
-void print_vals(mat , vec , vec ,int);
+void print_vals(mat , mat ,int ,double );
 
 // performs jacobi algorithm
 // to find eigenvalues/vectors
 int main(int argc, char** argv) {
     //FOR UNIT TESTING USE n = 3 AND pmax = 10
+    int interact=0;
+//    cout<<"interacting? (0=no 1=yes): ";
+//    cin>>interact;
     int n;
     cout<<"n: ";
     cin >> n;
+    cout<<endl;
     
-    double convergence=0.01;
+    double convergence=0.001;
+    double wr=0.01;
     double pmin=0;
     double pmax=10;      
     double h = (pmax-pmin)/(double(n));
     clock_t start,end;
     
+    
     mat a = zeros<mat>(n,n);
-    vec b = zeros<vec>(n);
-    vec v = zeros<vec>(n);
+    mat v = zeros<mat>(n,n);
     vec r(n);
     
     //initialize x values
@@ -46,19 +51,23 @@ int main(int argc, char** argv) {
     //initialize matrix and vector
     for (int i=0;i<n;i++){
         for (int j=0;j<n;j++){
-            if(i==j)
-                a(i,j)=2/(h*h)+r(i);
+            if(i==j && interact==0){
+                a(i,j)=2/(h*h)+r(i)*r(i);
+                v(i,j)=1;
+            }
+            else if (i==j && interact==1){
+                a(i,j)=2/(h*h)+wr*wr+1/(r(i)*r(i));
+                v(i,j)=1;
+            }
             else if (i==j+1 or i==j-1){
                 a(i,j)=-1/(h*h);
-            }
-            
+            } 
         }
-        //b(i)=h*h*100*exp(-10*(x(i)));
     }
     
     if(n<=10){
         cout<<"Before diagonalization"<<endl;
-        print_vals(a,b,v,n);
+        print_vals(a,v,n,convergence);
         cout<<endl;
     }
     
@@ -71,6 +80,8 @@ int main(int argc, char** argv) {
     double apq=a(p,q);
     double aip=0;
     double aiq=0;
+    double vpi=0;
+    double vqi=0;
     int count=1;        //count of iterations
     double tau=0;
     double t=0;         //tan(theta)
@@ -90,7 +101,6 @@ int main(int argc, char** argv) {
                  for (int j=0;j<n;j++){
                     if(i!=j && abs(a(i,j))>=abs(apq)){
                         apq=a(i,j);
-                        //cout<<apq<<endl;
                         p=i;
                         q=j;
                     }
@@ -102,7 +112,7 @@ int main(int argc, char** argv) {
 
         //unit test for max(a(i,j))    
         if(n==3 && count==1 && pmax==10){  
-            cout<<endl<<"Testing max non-diagonal matrix element"<<endl;
+            cout<<"Testing max non-diagonal matrix element"<<endl;
             cout<<"Results should be: max = -0.09 p,q = 2,1"<<endl;
             cout<<"Results are: max = "<<apq<<" p,q = "<<p<<","<<q<<endl;
             if(abs(-0.09-apq)<0.001 && p==2 && q==1)
@@ -128,15 +138,23 @@ int main(int argc, char** argv) {
                 aip=a(i,p);
                 aiq=a(i,q);
                 a(i,p)=aip*c-aiq*s;
+                a(p,i)=aip*c-aiq*s;
                 a(i,q)=aiq*c+aip*s;
+                a(q,i)=aiq*c+aip*s;
             }
+            vpi=v(p,i);
+            vqi=v(q,i);
+            v(p,i)=c*vpi-s*vqi;
+            v(q,i)=c*vqi+s*vpi;
         }
         a(p,p)=app*c*c-2*apq*c*s-aqq*s*s;
         a(q,q)=app*s*s+2*apq*c*s+aqq*c*c;
         a(p,q)=0;
+        a(q,p)=0;
+                
         
 //        cout<<"tau = "<<tau<<" t = "<<t<<" s = "<<s<<" c = "<<c<<endl;
-//        print_vals(a,b,v,n);
+//        print_vals(a,v,n,convergence);
 //        cout<<endl;
 //        cout<<"p: "<<p<<" q: "<<q<<endl<<endl;
 //        cout<<abs(apq)<<endl<<endl;
@@ -147,17 +165,41 @@ int main(int argc, char** argv) {
     
     if(n<=10){
         cout<<"After diagonalization"<<endl;
-        print_vals(a,b,v,n);
+        print_vals(a,v,n,convergence);
         cout<<endl;
     }
 
-    //unit test for eigenvalues)    
-    if(n==3 && pmax==10){
-        cout<<endl<<"Testing eigenvalues"<<endl;
-        cout<<"Results should be: 0.1776, 3.513, 6.848"<<endl;
+    //unit test for eigenvalues  
+    if(n==3 && pmax==10 && interact==0){
+        cout<<"Testing eigenvalues"<<endl;
+        cout<<"Results should be: 0.17927, 11.2916, 44.6247"<<endl;
         cout<<"Results are: "<<a(0,0)<<", "<<a(1,1)<<", "<<a(2,2)<<endl;
-        if(abs(0.1776-a(0,0))<0.01 && abs(3.513-a(1,1))<0.01 
-                && abs(6.848-a(2,2))<0.015){
+        if(abs(0.17927-a(0,0))<0.01 && abs(11.2916-a(1,1))<0.01 
+                && abs(44.6247-a(2,2))<0.01){
+            cout<<"Test passed"<<endl<<endl;
+        }
+        else
+            cout<<"Test failed"<<endl<<endl;
+    }
+    //unit test for eigenvectors    
+    if(n==3 && pmax==10 && interact==0){
+        cout<<"Testing eigenvectors"<<endl;
+        cout<<"Results should be:"<<endl;
+        cout<<"v0:  0.9999  0.0081 0.0000"<<endl;
+        cout<<"v1: -0.0081  0.9999 0.0027"<<endl; 
+        cout<<"v2:  0.0000 -0.0027 0.9999"<<endl;
+        cout<<"Results are: "<<endl;
+        for (int i=0;i<n;i++){
+            cout<<"v"<<i<<": ";
+            for (int j=0;j<n;j++){
+                if(abs(v(i,j))>convergence)
+                    cout<<v(i,j)<<" ";
+                else cout<<"0 ";
+            }
+            cout<<endl;
+        }
+        if(abs(0.17927-a(0,0))<0.01 && abs(11.2916-a(1,1))<0.01 
+                && abs(44.6247-a(2,2))<0.01){
             cout<<"Test passed"<<endl<<endl;
         }
         else
@@ -190,14 +232,25 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-void print_vals(mat A, vec b, vec v,int n){
+void print_vals(mat A, mat v,int n,double conv){
     cout<<"A: ";
     for (int i=0;i<n;i++){
         if(i>0){
             cout<<"   ";
          }
         for (int j=0;j<n;j++){
-            cout<<A(i,j)<<" ";
+            if(abs(A(i,j))>conv)
+                cout<<A(i,j)<<" ";
+            else cout<<"0 ";
+        }
+        cout<<endl;
+    }
+    for (int i=0;i<n;i++){
+        cout<<"v"<<i<<": ";
+        for (int j=0;j<n;j++){
+            if(abs(v(i,j))>conv)
+                cout<<v(i,j)<<" ";
+            else cout<<"0 ";
         }
         cout<<endl;
     }
