@@ -8,6 +8,7 @@
 #include <iostream>
 #include<fstream>
 #include<math.h>
+#include<iomanip>
 //#include "../armadillo"
 #include </opt/local/include/armadillo.h>
 #include<time.h>
@@ -19,8 +20,9 @@ void print_vals(mat , mat ,int ,double );
 
 // performs jacobi algorithm
 // to find eigenvalues/vectors
+// FOR UNIT TESTING USE n = 3 AND pmax = 10
 int main(int argc, char** argv) {
-    //FOR UNIT TESTING USE n = 3 AND pmax = 10
+    cout.precision(4);
     int interact=0;
 //    cout<<"interacting? (0=no 1=yes): ";
 //    cin>>interact;
@@ -29,13 +31,14 @@ int main(int argc, char** argv) {
     cin >> n;
     cout<<endl;
     
-    double convergence=0.001;
-    double wr=0.01;
-    double pmin=0;
-    double pmax=10;      
-    double h = (pmax-pmin)/(double(n));
-    clock_t start,end;
-    
+    double conv=0.001,wr=0.01, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
+    double aip=0, aiq=0, vpi=0, vqi=0;
+    double tau=0, t=0, s=0, c=0;//tan(theta), sin(theta), cos(theta)    
+    int count=1;                //count of iterations
+    int count_old=count-10;     //keep track of every 10th iteration    
+    int p=n-1, q=n-2;           //off diag all same value to start
+                                //pick last as first maximum
+    clock_t start, end;
     
     mat a = zeros<mat>(n,n);
     mat v = zeros<mat>(n,n);
@@ -67,32 +70,17 @@ int main(int argc, char** argv) {
     
     if(n<=10){
         cout<<"Before diagonalization"<<endl;
-        print_vals(a,v,n,convergence);
+        print_vals(a,v,n,conv);
         cout<<endl;
     }
-    
-    //off diag all same value to start
-    //pick last as first maximum
-    int p=n-1;
-    int q=n-2;
+
     double app=a(p,p);
     double aqq=a(q,q);
     double apq=a(p,q);
-    double aip=0;
-    double aiq=0;
-    double vpi=0;
-    double vqi=0;
-    int count=1;        //count of iterations
-    double tau=0;
-    double t=0;         //tan(theta)
-    double s=0;         //sin(theta)
-    double c=0;         //cos(theta)
-
     
     start=clock();
     
-    
-    while(abs(apq)>convergence){
+    while(abs(apq)>conv){
     //while(count<=5){
         //find maximum non-diag matrix elements
         if(count>1){
@@ -107,14 +95,14 @@ int main(int argc, char** argv) {
                  }
             }
         }
-        
 //        cout<<"p: "<<p<<" q: "<<q<<endl;
 
         //unit test for max(a(i,j))    
         if(n==3 && count==1 && pmax==10){  
             cout<<"Testing max non-diagonal matrix element"<<endl;
             cout<<"Results should be: max = -0.09 p,q = 2,1"<<endl;
-            cout<<"Results are: max = "<<apq<<" p,q = "<<p<<","<<q<<endl;
+            cout<<setprecision(2)<<"Results are: max = "<<apq<<" p,q = "
+                    <<p<<","<<q<<endl;
             if(abs(-0.09-apq)<0.001 && p==2 && q==1)
                 cout<<"Test passed"<<endl<<endl;
             else
@@ -132,7 +120,7 @@ int main(int argc, char** argv) {
         c=1/sqrt(1+t*t);
         s=c*t;
 
-        //calculate new matrix elements
+        //calculate new matrix elements and vectors
         for(int i=0;i<n;i++){
             if(i!=p && i!=q){
                 aip=a(i,p);
@@ -158,14 +146,15 @@ int main(int argc, char** argv) {
 //        cout<<endl;
 //        cout<<"p: "<<p<<" q: "<<q<<endl<<endl;
 //        cout<<abs(apq)<<endl<<endl;
+        
         count++;
     }
     
     end=clock();
     
-    if(n<=10){
+    if(n<=10 && n!=3){
         cout<<"After diagonalization"<<endl;
-        print_vals(a,v,n,convergence);
+        print_vals(a,v,n,conv);
         cout<<endl;
     }
 
@@ -173,7 +162,7 @@ int main(int argc, char** argv) {
     if(n==3 && pmax==10 && interact==0){
         cout<<"Testing eigenvalues"<<endl;
         cout<<"Results should be: 0.17927, 11.2916, 44.6247"<<endl;
-        cout<<"Results are: "<<a(0,0)<<", "<<a(1,1)<<", "<<a(2,2)<<endl;
+        cout<<fixed<<"Results are: "<<a(0,0)<<", "<<a(1,1)<<", "<<a(2,2)<<endl;
         if(abs(0.17927-a(0,0))<0.01 && abs(11.2916-a(1,1))<0.01 
                 && abs(44.6247-a(2,2))<0.01){
             cout<<"Test passed"<<endl<<endl;
@@ -181,6 +170,7 @@ int main(int argc, char** argv) {
         else
             cout<<"Test failed"<<endl<<endl;
     }
+    
     //unit test for eigenvectors    
     if(n==3 && pmax==10 && interact==0){
         cout<<"Testing eigenvectors"<<endl;
@@ -192,14 +182,16 @@ int main(int argc, char** argv) {
         for (int i=0;i<n;i++){
             cout<<"v"<<i<<": ";
             for (int j=0;j<n;j++){
-                if(abs(v(i,j))>convergence)
-                    cout<<v(i,j)<<" ";
-                else cout<<"0 ";
+                if(abs(v(i,j))>conv)
+                    cout<<fixed<<v(i,j)<<" ";
+                else cout<<"0.0000 ";
             }
             cout<<endl;
         }
-        if(abs(0.17927-a(0,0))<0.01 && abs(11.2916-a(1,1))<0.01 
-                && abs(44.6247-a(2,2))<0.01){
+        if(abs(0.999-v(0,0))<0.01 && abs(0.008-v(0,1))<0.01 && abs(0-v(0,02))<0.01
+                && abs(-0.0081-v(1,0))<0.01 && abs(0.999-v(1,1))<0.01
+                && abs(0.0027-v(1,2))<0.01 && abs(0-v(2,0))<0.01
+                && abs(-0.0027-v(2,1))<0.01 && abs(0.999-v(2,2))<0.01){
             cout<<"Test passed"<<endl<<endl;
         }
         else
@@ -207,7 +199,7 @@ int main(int argc, char** argv) {
     }
     
     cout<<"Diagonalization took "<<count<<" iterations"<<endl;
-    cout<<"CPU time (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
+    cout<<scientific<<"CPU time (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
     
     
 //    vec u(n);
@@ -228,7 +220,6 @@ int main(int argc, char** argv) {
 //    actual.close();
 //    error.close();
     
-    
     return 0;
 }
 
@@ -240,8 +231,8 @@ void print_vals(mat A, mat v,int n,double conv){
          }
         for (int j=0;j<n;j++){
             if(abs(A(i,j))>conv)
-                cout<<A(i,j)<<" ";
-            else cout<<"0 ";
+                cout<<fixed<<A(i,j)<<" ";
+            else cout<<"0.000 ";
         }
         cout<<endl;
     }
@@ -249,20 +240,9 @@ void print_vals(mat A, mat v,int n,double conv){
         cout<<"v"<<i<<": ";
         for (int j=0;j<n;j++){
             if(abs(v(i,j))>conv)
-                cout<<v(i,j)<<" ";
-            else cout<<"0 ";
+                cout<<fixed<<v(i,j)<<" ";
+            else cout<<"0.000 ";
         }
         cout<<endl;
-    }
-//    cout<<"b: ";
-//    for (int i=0;i<n;i++){
-//        cout<<b(i)<<" ";
-//    }
-//    cout<<endl;
-//    cout<<"v: ";
-//    for (int i=0;i<n;i++){
-//        cout<<v(i)<<" ";
-//    }
-//    cout<<endl;
-    
+    }  
 }
