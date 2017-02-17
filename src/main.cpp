@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include<fstream>
+#include<math.h>
 //#include "../armadillo"
 #include </opt/local/include/armadillo.h>
 #include<time.h>
@@ -22,11 +23,12 @@ int main(int argc, char** argv) {
     int n;
     cout<<"n: ";
     cin >> n;
+    
+    double convergence=0.001;
     double pmin=0;
     double pmax=10;      
-
     double h = (pmax-pmin)/(double(n));
-    clock_t begin,finish;
+    clock_t start,end;
     
     mat a = zeros<mat>(n,n);
     vec b = zeros<vec>(n);
@@ -44,10 +46,9 @@ int main(int argc, char** argv) {
     for (int i=0;i<n;i++){
         for (int j=0;j<n;j++){
             if(i==j)
-                a(i,j)=(2/(h*h))+r(i)*r(i);
+                a(i,j)=2/(h*h)+r(i);
             else if (i==j+1 or i==j-1){
                 a(i,j)=-1/(h*h);
-                a(i,j)=1+j-i*i;
             }
             
         }
@@ -55,37 +56,102 @@ int main(int argc, char** argv) {
     }
     
     if(n<=10){
-        //cout<<"Before LU decomp"<<endl;
+        cout<<"Before diagonalization"<<endl;
         print_vals(a,b,v,n);
+        cout<<endl;
     }
     
-    double max=0;
-    int p=0;
-    int q=0;
-    begin=clock();
+    //off diag all same value to start
+    //pick last as first maximum
+    int p=n-1;
+    int q=n-2;
+    double app=a(p,p);
+    double aqq=a(q,q);
+    double apq=a(p,q);
+    double aip=0;
+    double aiq=0;
+    int count=1;        //count of iterations
+    double tau=0;
+    double t=0;         //tan(theta)
+    double s=0;         //sin(theta)
+    double c=0;         //cos(theta)
+
     
-    //find maximum non-diag matrix elements
-    for (int i=0;i<n;i++){
-         for (int j=0;j<n;j++){
-            if(i!=j && abs(a(i,j))>max){
-                max=a(i,j);
-                p=i;
-                q=j;
+    start=clock();
+    
+    
+    while(abs(apq)>convergence){
+    //while(count<=5){
+        //find maximum non-diag matrix elements
+        if(count>1){
+            apq=0;
+            for (int i=0;i<n;i++){
+                 for (int j=0;j<n;j++){
+                    if(i!=j && abs(a(i,j))>=abs(apq)){
+                        apq=a(i,j);
+                        //cout<<apq<<endl;
+                        p=i;
+                        q=j;
+                    }
+                 }
             }
-         }
+        }
+        
+//        cout<<"p: "<<p<<" q: "<<q<<endl;
+
+        //unit test for max(a(i,j))    
+        if(n==4 && count==1 && pmax=10){  
+            cout<<endl<<"Testing max non-diagonal matrix element"<<endl;
+            cout<<"Results should be: max = -0.16 p,q = 3,2"<<endl;
+            cout<<"Results are: max = "<<apq<<" p,q = "<<p<<","<<q<<endl;
+            if(apq==-0.16 && p==3 && q==2)
+                cout<<"Test passed"<<endl<<endl;
+            else
+                cout<<"Test failed"<<endl<<endl;
+        }
+
+        //calculate sin(theta) and cos(theta)
+        aqq=a(q,q);
+        app=a(p,p);
+        tau=(aqq-app)/(2*apq);
+        if(tau>0)
+            t=1/(tau+sqrt(1+tau*tau));
+        else
+            t=1/(-tau+sqrt(1+tau*tau));   
+        c=1/sqrt(1+t*t);
+        s=c*t;
+
+        //calculate new matrix elements
+        for(int i=0;i<n;i++){
+            if(i!=p && i!=q){
+                aip=a(i,p);
+                aiq=a(i,q);
+                a(i,p)=aip*c-aiq*s;
+                a(i,q)=aiq*c+aip*s;
+            }
+        }
+        a(p,p)=app*c*c-2*apq*c*s-aqq*s*s;
+        a(q,q)=app*s*s+2*apq*c*s+aqq*c*c;
+        a(p,q)=0;
+        
+//        cout<<"tau = "<<tau<<" t = "<<t<<" s = "<<s<<" c = "<<c<<endl;
+//        print_vals(a,b,v,n);
+//        cout<<endl;
+//        cout<<"p: "<<p<<" q: "<<q<<endl<<endl;
+//        cout<<abs(apq)<<endl<<endl;
+        count++;
     }
-  
-//    Unit test for max(a(i,j))    
-    cout<<endl<<"Testing max non-diagonal matrix element"<<endl;
-    cout<<"Results should be: max = -6 p,q = 3,2"<<endl;
-    cout<<"max: "<<max<<endl;
-    cout<<"p,q: "<<p<<","<<q<<endl<<endl;
     
+    end=clock();
     
-    finish=clock();
+    if(n<=10){
+        cout<<"After diagonalization"<<endl;
+        print_vals(a,b,v,n);
+        cout<<endl;
+    }
     
-    cout<<"Total CPU time (sec) : "<<((double)finish-(double)begin)/
-            CLOCKS_PER_SEC<<endl;
+    cout<<"Diagonalization took "<<count<<" iterations"<<endl;
+    cout<<"CPU time (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
     
     
 //    vec u(n);
@@ -121,15 +187,15 @@ void print_vals(mat A, vec b, vec v,int n){
         }
         cout<<endl;
     }
-    cout<<"b: ";
-    for (int i=0;i<n;i++){
-        cout<<b(i)<<" ";
-    }
-    cout<<endl;
-    cout<<"v: ";
-    for (int i=0;i<n;i++){
-        cout<<v(i)<<" ";
-    }
-    cout<<endl;
+//    cout<<"b: ";
+//    for (int i=0;i<n;i++){
+//        cout<<b(i)<<" ";
+//    }
+//    cout<<endl;
+//    cout<<"v: ";
+//    for (int i=0;i<n;i++){
+//        cout<<v(i)<<" ";
+//    }
+//    cout<<endl;
     
 }
