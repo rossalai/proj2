@@ -1,0 +1,75 @@
+\documentclass[prc,amsmath,twocolumn,superscriptaddress]{revtex4}
+%\bibliographystyle{prsty}
+\usepackage{gensymb}
+\usepackage{graphicx,color}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage{verbatim}
+\usepackage{natbib}
+
+
+\begin{document}
+
+  \newcommand {\nc} {\newcommand}
+  \nc {\Sec} [1] {Sec.~\ref{#1}}
+  \nc {\IR} [1] {\textcolor{red}{#1}} 
+
+\title{PHY905 Project 2 - Jacobi Algorithm}
+
+
+\author{Alaina~Ross}
+
+\date{\today}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstract}
+ \noindent {\bf Background:}% To solve a differential equation computationally the derivative is approximated and a system of linear equations is solved instead. Such systems can be solved via matrix equations and Gauss elimination. \\
+\\ {\bf Purpose:} %The goal of this work is to implement various Gauss elimination algorithms and study the accuracy and performance of each when applied to a system of equations which result from the Poisson equation with a given example from electromagnetism. \\
+\\ {\bf Method:} %We use a general Gauss elimination algorithm as well as two for tridiagonal matrixes and one which uses LU decomposition. We inspect the time to solution for varying matrix sizes and compare to the analytic solution to evaluate the accuracy of the algorithms. \\ 
+\\ {\bf Results:} %We find the most accurate matrix size is $10^5$ and the fastest algorithm for this matrix size is the tridiagonal algorithm. \\
+ \\ {\bf Conclusions:} %Our results demonstrate the importance of choosing the right algorithm for the given physical situation.
+\end{abstract}
+
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{introduction}
+\label{intro}
+
+
+%\begin{figure*}[t]
+%\includegraphics[scale=0.2]{algorithm.jpg}
+%\caption{Graphical representation of forward elimination algorithm based on~\cite{graph} for (a) the first iteration, (b) the second iteration, and (c) the final iteration.}
+%\label{algorithm}
+%\end{figure*}
+
+\section{methods}
+\label{methods}
+
+\section{results}
+\label{results}
+
+%\begin{table}[b]
+%\centering
+%\begin{tabular}{|c|c|}
+%\hline
+%Algorithm& FLOPs\\
+%\hline
+%General Gauss&$\frac{2}{3}n^3$\\
+%Tridiagonal matrix&$8n$\\
+%Specific tridiagonal&$6n$\\
+%LU  decomposition&$2n^2$\\
+%\hline
+%\end{tabular}
+%\caption{Comparison of number of FLOPs for each algorithm.}
+%\label{flop_table}
+%\end{table}
+
+\section{conclusions}
+\label{conc}
+
+\bibliography{jacobi}
+\end{document}
+
