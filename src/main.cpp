@@ -198,6 +198,19 @@ int main(int argc, char** argv) {
             cout<<"Test failed"<<endl<<endl;
     }
     
+    //unit test for eigenvectors    
+    if(n==3 && pmax==10 && interact==0){
+        cout<<"Testing orthogonality"<<endl;
+        cout<<"Results should be: v0*v1 = 0, v0*v0 = 1"<<endl;
+        double dot1=v(0,0)*v(1,0)+v(0,1)*v(1,1)+v(0,2)*v(1,2);
+        double dot2=v(0,0)*v(0,0)+v(0,1)*v(0,1)+v(0,2)*v(0,2);
+        cout<<"Results are: v0*v1 = "<<dot1<<", v0*v0 = "<<dot2<<endl;
+        if(abs(dot1)<0.01 && abs(dot2-1)<0.01)
+            cout<<"Test passed"<<endl<<endl;
+        else
+            cout<<"Test failed"<<endl<<endl;
+    }
+    
     cout<<"Diagonalization took "<<count<<" iterations"<<endl;
     cout<<scientific<<"CPU time (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
     
