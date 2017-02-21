@@ -10,19 +10,15 @@
 #include<math.h>
 #include<iomanip>
 //#include "../armadillo"
-#include </opt/local/include/armadillo.h>
+//#include </opt/local/include/armadillo.h>
 #include<time.h>
+
+#include "proj2.h"
+
 using namespace std;
 using namespace arma;
 
-//template functions
-void print_vals(mat , mat ,int ,double );
-
-// performs jacobi algorithm
-// to find eigenvalues/vectors
-// FOR UNIT TESTING USE n = 3 AND pmax = 10
-int main(int argc, char** argv) {
-    cout.precision(4);
+int main(){
     int interact=0;
 //    cout<<"interacting? (0=no 1=yes): ";
 //    cin>>interact;
@@ -30,7 +26,18 @@ int main(int argc, char** argv) {
     cout<<"n: ";
     cin >> n;
     cout<<endl;
-    
+    jacobi(n,interact);
+    return 0;
+}
+
+//template functions
+//void print_vals(mat , mat ,int ,double );
+
+// performs jacobi algorithm
+// to find eigenvalues/vectors
+// FOR UNIT TESTING USE n = 3 AND pmax = 10
+int jacobi(int n, int interact) {
+    cout.precision(4);
     double conv=0.001,wr=0.01, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
     double aip=0, aiq=0, vpi=0, vqi=0;
     double tau=0, t=0, s=0, c=0;//tan(theta), sin(theta), cos(theta)    
@@ -45,11 +52,10 @@ int main(int argc, char** argv) {
     vec r(n);
     
     //initialize x values
-    r(0)=0;
+    r(0)=h;
     for (int i=1; i<n ;i++){
         r(i)=r(i-1)+h;
     }
-
     
     //initialize matrix and vector
     for (int i=0;i<n;i++){
@@ -81,20 +87,24 @@ int main(int argc, char** argv) {
     start=clock();
     
     while(abs(apq)>conv){
-    //while(count<=5){
-        //find maximum non-diag matrix elements
         if(count>1){
             apq=0;
-            for (int i=0;i<n;i++){
-                 for (int j=0;j<n;j++){
-                    if(i!=j && abs(a(i,j))>=abs(apq)){
-                        apq=a(i,j);
-                        p=i;
-                        q=j;
-                    }
-                 }
-            }
+            find_max(a,p,q,apq,n);
         }
+//    //while(count<=5){
+//        //find maximum non-diag matrix elements
+//        if(count>1){
+//            apq=0;
+//            for (int i=0;i<n;i++){
+//                 for (int j=0;j<n;j++){
+//                    if(i!=j && abs(a(i,j))>=abs(apq)){
+//                        apq=a(i,j);
+//                        p=i;
+//                        q=j;
+//                    }
+//                 }
+//            }
+//        }
 //        cout<<"p: "<<p<<" q: "<<q<<endl;
 
         //unit test for max(a(i,j))    
@@ -152,7 +162,8 @@ int main(int argc, char** argv) {
     
     end=clock();
     
-    if(n<=10 && n!=3){
+    //if(n<=10 && n!=3){
+    if(n<=10){
         cout<<"After diagonalization"<<endl;
         print_vals(a,v,n,conv);
         cout<<endl;
@@ -161,10 +172,10 @@ int main(int argc, char** argv) {
     //unit test for eigenvalues  
     if(n==3 && pmax==10 && interact==0){
         cout<<"Testing eigenvalues"<<endl;
-        cout<<"Results should be: 0.17927, 11.2916, 44.6247"<<endl;
+        cout<<"Results should be: 11.2909, 44.6241, 100.18"<<endl;
         cout<<fixed<<"Results are: "<<a(0,0)<<", "<<a(1,1)<<", "<<a(2,2)<<endl;
-        if(abs(0.17927-a(0,0))<0.01 && abs(11.2916-a(1,1))<0.01 
-                && abs(44.6247-a(2,2))<0.01){
+        if(abs(11.2909-a(0,0))<0.01 && abs(44.6241-a(1,1))<0.01 
+                && abs(100.18-a(2,2))<0.01){
             cout<<"Test passed"<<endl<<endl;
         }
         else
@@ -214,26 +225,42 @@ int main(int argc, char** argv) {
     cout<<"Diagonalization took "<<count<<" iterations"<<endl;
     cout<<scientific<<"CPU time (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
     
+    //print eigenvectors to files
+    for(int i=0;i<n;i++){
+        string filename="eigen_";
+        filename+=to_string(i);
+        filename+=".txt";
+        ofstream outfile(filename);
+        if(abs(a(i,i))<15&& a(i,i)>0){
+            outfile<<"# "<<a(i,i)<<endl<<endl;
+            for(int j=0;j<n;j++){
+                outfile<<r(j)<<"   "<<r(j)*v(i,j)<<endl;
+            }
+            outfile.close();
+        }
+    }
+
+    for(int i=0;i<n;i++){
+        if(abs(a(i,i))<15 && a(i,i)>0){
+             cout<<i<<" "<<fixed<<a(i,i)<<endl;
+        }
+    }
     
-//    vec u(n);
-//    ofstream outfile("output_general.txt");
-//    ofstream error("error_general.txt");
-//    ofstream actual("output_analytic.txt");
-//    outfile<<"0.0 0.0"<<endl;
-//    actual<<"0.0 0.0"<<endl;
-//    for (int i=0;i<n;i++){
-//        outfile<<x(i)<<" "<<v(i)<<endl;
-//        u(i)=1-(1-exp(-10))*x(i)-exp(-10*x(i));
-//        actual<<x(i)<<" "<<u(i)<<endl;
-//        error<<x(i)<<" "<<log10(abs((v(i)-u(i))/u(i)))<<endl;
-//    }
-//    outfile<<"1.0 0.0"<<endl;
-//    actual<<"1.0 0.0"<<endl;
-//    outfile.close();
-//    actual.close();
-//    error.close();
     
     return 0;
+}
+
+//find maximum non-diag matrix elements
+void find_max(mat a,int& p,int& q,double& apq,int n){
+    for (int i=0;i<n;i++){
+         for (int j=0;j<n;j++){
+            if(i!=j && abs(a(i,j))>=abs(apq)){
+                apq=a(i,j);
+                p=i;
+                q=j;
+            }
+         }
+    }
 }
 
 void print_vals(mat A, mat v,int n,double conv){
