@@ -91,33 +91,6 @@ int jacobi(int n, int interact) {
             apq=0;
             find_max(a,p,q,apq,n);
         }
-//    //while(count<=5){
-//        //find maximum non-diag matrix elements
-//        if(count>1){
-//            apq=0;
-//            for (int i=0;i<n;i++){
-//                 for (int j=0;j<n;j++){
-//                    if(i!=j && abs(a(i,j))>=abs(apq)){
-//                        apq=a(i,j);
-//                        p=i;
-//                        q=j;
-//                    }
-//                 }
-//            }
-//        }
-//        cout<<"p: "<<p<<" q: "<<q<<endl;
-
-        //unit test for max(a(i,j))    
-        if(n==3 && count==1 && pmax==10){  
-            cout<<"Testing max non-diagonal matrix element"<<endl;
-            cout<<"Results should be: max = -0.09 p,q = 2,1"<<endl;
-            cout<<setprecision(2)<<"Results are: max = "<<apq<<" p,q = "
-                    <<p<<","<<q<<endl;
-            if(abs(-0.09-apq)<0.001 && p==2 && q==1)
-                cout<<"Test passed"<<endl<<endl;
-            else
-                cout<<"Test failed"<<endl<<endl;
-        }
 
         //calculate sin(theta) and cos(theta)
         aqq=a(q,q);
@@ -126,7 +99,7 @@ int jacobi(int n, int interact) {
         if(tau>0)
             t=1/(tau+sqrt(1+tau*tau));
         else
-            t=1/(-tau+sqrt(1+tau*tau));   
+            t=-1/(-tau+sqrt(1+tau*tau));   
         c=1/sqrt(1+t*t);
         s=c*t;
 
@@ -140,12 +113,14 @@ int jacobi(int n, int interact) {
                 a(i,q)=aiq*c+aip*s;
                 a(q,i)=aiq*c+aip*s;
             }
-            vpi=v(p,i);
-            vqi=v(q,i);
+            //vpi=v(p,i);
+            //vqi=v(q,i);
+            vpi=v(i,p);
+            vqi=v(i,q);
             v(p,i)=c*vpi-s*vqi;
             v(q,i)=c*vqi+s*vpi;
         }
-        a(p,p)=app*c*c-2*apq*c*s-aqq*s*s;
+        a(p,p)=app*c*c-2*apq*c*s+aqq*s*s;
         a(q,q)=app*s*s+2*apq*c*s+aqq*c*c;
         a(p,q)=0;
         a(q,p)=0;
@@ -241,9 +216,9 @@ int jacobi(int n, int interact) {
     }
 
     for(int i=0;i<n;i++){
-        if(abs(a(i,i))<15 && a(i,i)>0){
+        //if(abs(a(i,i))<15 && a(i,i)>0){
              cout<<i<<" "<<fixed<<a(i,i)<<endl;
-        }
+        //}
     }
     
     
