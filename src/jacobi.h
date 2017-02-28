@@ -1,9 +1,12 @@
 /* 
- * File:   proj2.h
+ * File:   jacobi.h
  * Author: alaina
  *
  * Created on February 21, 2017, 2:04 PM
  */
+
+#ifndef JACOBI_H
+#define	JACOBI_H
 
 #include <iostream>
 #include<fstream>
@@ -13,8 +16,6 @@
 #include<time.h>
 #include<vector>
 
-#ifndef PROJ2_H
-#define	PROJ2_H
 using namespace std;
 using namespace arma;
 
@@ -25,5 +26,5 @@ void find_max(mat,int&,int&,double&,int);
 vector<double> get_eigenvals(mat,int);
 mat get_eigenvecs(mat,mat,int);
 
-#endif /* PROJ2_H */
+#endif /* JACOBI_H */
 
