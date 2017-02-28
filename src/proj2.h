@@ -11,6 +11,7 @@
 #include<iomanip>
 #include </opt/local/include/armadillo.h>
 #include<time.h>
+#include<vector>
 
 #ifndef PROJ2_H
 #define	PROJ2_H
@@ -18,8 +19,11 @@ using namespace std;
 using namespace arma;
 
 void print_vals(mat,mat,int,double);
-int jacobi(int, int);
+void initialize(int,double,mat&,vec&,mat&,int,double);
+int jacobi(int,int,double,double,mat&,vec&,mat&);
 void find_max(mat,int&,int&,double&,int);
+vector<double> get_eigenvals(mat,int);
+mat get_eigenvecs(mat,mat,int);
 
 #endif /* PROJ2_H */
 

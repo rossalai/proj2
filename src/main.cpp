@@ -12,6 +12,8 @@
 //#include "../armadillo"
 //#include </opt/local/include/armadillo.h>
 #include<time.h>
+#include<algorithm>
+#include<vector>
 
 #include "proj2.h"
 
@@ -26,19 +28,41 @@ int main(){
     cout<<"n: ";
     cin >> n;
     cout<<endl;
-    jacobi(n,interact);
+    double conv=0.001,wr=0.01, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
+    mat a = zeros<mat>(n,n);
+    mat v = zeros<mat>(n,n);
+    vec r(n);
+    initialize(n,h,a,r,v,interact,wr);
+    jacobi(n,interact,conv,wr,a,r,v);
+    vector<double>eigenval=get_eigenvals(a,n);
+    mat eigenvec(3,n)=get_eigenvecs(a,v,n);
+    //print eigenvectors to files
+   /* for(int i=0;i<n;i++){
+        string filename="eigen_";
+        filename+=to_string(i);
+        filename+=".txt";
+        ofstream outfile(filename);
+        if(abs(a(i,i))<15&& a(i,i)>0){
+            outfile<<"# "<<a(i,i)<<endl<<endl;
+            for(int j=0;j<n;j++){
+                outfile<<r(j)<<"   "<<r(j)*v(i,j)<<endl;
+            }
+            outfile.close();
+        }
+    }*/
+    cout<<endl;
+    for(int i=0;i<n;i++){
+       // cout<<i<<" "<<fixed<<a(i,i)<<endl;
+        cout<<i<<" "<<eigen[i]<<endl;
+    }
     return 0;
 }
 
-//template functions
-//void print_vals(mat , mat ,int ,double );
-
 // performs jacobi algorithm
 // to find eigenvalues/vectors
-// FOR UNIT TESTING USE n = 3 AND pmax = 10
-int jacobi(int n, int interact) {
+int jacobi(int n, int interact, double conv, double wr,mat& a, vec& r, mat& v) {
     cout.precision(4);
-    double conv=0.001,wr=0.01, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
+    //double conv=0.001,wr=0.01, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
     double aip=0, aiq=0, vpi=0, vqi=0;
     double tau=0, t=0, s=0, c=0;//tan(theta), sin(theta), cos(theta)    
     int count=1;                //count of iterations
@@ -47,33 +71,11 @@ int jacobi(int n, int interact) {
                                 //pick last as first maximum
     clock_t start, end;
     
-    mat a = zeros<mat>(n,n);
+    /*mat a = zeros<mat>(n,n);
     mat v = zeros<mat>(n,n);
     vec r(n);
-    
-    //initialize x values
-    r(0)=h;
-    for (int i=1; i<n ;i++){
-        r(i)=r(i-1)+h;
-    }
-    
-    //initialize matrix and vector
-    for (int i=0;i<n;i++){
-        for (int j=0;j<n;j++){
-            if(i==j && interact==0){
-                a(i,j)=2/(h*h)+r(i)*r(i);
-                v(i,j)=1;
-            }
-            else if (i==j && interact==1){
-                a(i,j)=2/(h*h)+wr*wr+1/(r(i)*r(i));
-                v(i,j)=1;
-            }
-            else if (i==j+1 or i==j-1){
-                a(i,j)=-1/(h*h);
-            } 
-        }
-    }
-    
+    initialize(n,h,a,r,v,interact,wr);*/
+
     if(n<=10){
         cout<<"Before diagonalization"<<endl;
         print_vals(a,v,n,conv);
@@ -145,7 +147,7 @@ int jacobi(int n, int interact) {
     }
 
     //unit test for eigenvalues  
-    if(n==3 && pmax==10 && interact==0){
+  /*  if(n==3 && pmax==10 && interact==0){
         cout<<"Testing eigenvalues"<<endl;
         cout<<"Results should be: 11.2909, 44.6241, 100.18"<<endl;
         cout<<fixed<<"Results are: "<<a(0,0)<<", "<<a(1,1)<<", "<<a(2,2)<<endl;
@@ -155,10 +157,10 @@ int jacobi(int n, int interact) {
         }
         else
             cout<<"Test failed"<<endl<<endl;
-    }
+    }*/
     
     //unit test for eigenvectors    
-    if(n==3 && pmax==10 && interact==0){
+   /* if(n==3 && pmax==10 && interact==0){
         cout<<"Testing eigenvectors"<<endl;
         cout<<"Results should be:"<<endl;
         cout<<"v0:  0.9999  0.0081 0.0000"<<endl;
@@ -182,10 +184,10 @@ int jacobi(int n, int interact) {
         }
         else
             cout<<"Test failed"<<endl<<endl;
-    }
+    }*/
     
-    //unit test for eigenvectors    
-    if(n==3 && pmax==10 && interact==0){
+    //unit test for eigenvector orthogonality    
+   /* if(n==3 && pmax==10 && interact==0){
         cout<<"Testing orthogonality"<<endl;
         cout<<"Results should be: v0*v1 = 0, v0*v0 = 1"<<endl;
         double dot1=v(0,0)*v(1,0)+v(0,1)*v(1,1)+v(0,2)*v(1,2);
@@ -195,34 +197,70 @@ int jacobi(int n, int interact) {
             cout<<"Test passed"<<endl<<endl;
         else
             cout<<"Test failed"<<endl<<endl;
-    }
+    }*/
     
     cout<<"Diagonalization took "<<count<<" iterations"<<endl;
     cout<<scientific<<"CPU time (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
     
-    //print eigenvectors to files
+    return 0;
+}
+
+//get first three eigenvectors
+mat get_eigenvecs(mat a, mat v, int n){
+    vector<double>eigenvals=get_eigenvals(a,n);
+    mat vecs(3,n);
+    for(int i=0;i<3;i++){
+        for(int j=0;j<n;j++){
+            if(a(j,j)==eigenvals[i]){
+                //string filename="eigen_";
+                //filename+=to_string(i);
+                //filename+=".txt";
+                //ofstream outfile(filename);
+                //outfile<<"# "<<a(i,i)<<endl<<endl;
+                for(int k=0;k<n;k++){
+                      //outfile<<r(k)<<"   "<<r(k)*v(j,k)<<endl;
+                      vecs(i,k)=v(j,k);
+                }
+                //outfile.close();
+             }
+         }
+    }
+}
+
+//get eigenvalues in order
+vector<double> get_eigenvals(mat a,int n){
+    vector<double>eigen;
     for(int i=0;i<n;i++){
-        string filename="eigen_";
-        filename+=to_string(i);
-        filename+=".txt";
-        ofstream outfile(filename);
-        if(abs(a(i,i))<15&& a(i,i)>0){
-            outfile<<"# "<<a(i,i)<<endl<<endl;
-            for(int j=0;j<n;j++){
-                outfile<<r(j)<<"   "<<r(j)*v(i,j)<<endl;
+        eigen.push_back(a(i,i));
+    }
+    sort (eigen.begin(), eigen.begin()+n);
+    return eigen;
+}
+
+//initialize matrix/vectors
+void initialize(int n, double h, mat& a, vec& r, mat& v,int interact,double wr){
+    //initialize x values
+    r(0)=h;
+    for (int i=1; i<n ;i++){
+        r(i)=r(i-1)+h;
+    }
+    
+    //initialize matrix and vector
+    for (int i=0;i<n;i++){
+        for (int j=0;j<n;j++){
+            if(i==j && interact==0){
+                a(i,j)=2/(h*h)+r(i)*r(i);
+                v(i,j)=1;
             }
-            outfile.close();
+            else if (i==j && interact==1){
+                a(i,j)=2/(h*h)+wr*wr+1/(r(i)*r(i));
+                v(i,j)=1;
+            }
+            else if (i==j+1 or i==j-1){
+                a(i,j)=-1/(h*h);
+            } 
         }
     }
-
-    for(int i=0;i<n;i++){
-        //if(abs(a(i,i))<15 && a(i,i)>0){
-             cout<<i<<" "<<fixed<<a(i,i)<<endl;
-        //}
-    }
-    
-    
-    return 0;
 }
 
 //find maximum non-diag matrix elements
@@ -238,6 +276,7 @@ void find_max(mat a,int& p,int& q,double& apq,int n){
     }
 }
 
+//print matrix and eigenvectors
 void print_vals(mat A, mat v,int n,double conv){
     cout<<"A: ";
     for (int i=0;i<n;i++){
