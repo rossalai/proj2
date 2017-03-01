@@ -21,14 +21,14 @@ int main(int argc, char** argv) {
     int interact=0;
     cout<<"n: ";
     cin >> n;
+    cout<<"interacting? (0=no 1=yes): ";
+    cin>>interact;
     cout<<endl;
-//    cout<<"interacting? (0=no 1=yes): ";
-//    cin>>interact;
     vec r(n);
     mat a = zeros<mat>(n,n);
     mat v = zeros<mat>(n,n);
-    double conv=0.001,wr=0.01, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
-    
+    double conv=0.0001,wr=0.05, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
+    n=n-1;
     initialize(n,h,a,r,v,interact,wr);
     jacobi(n,interact,conv,wr,a,r,v);
     vector<double>eigenval=get_eigenvals(a,n);
@@ -42,15 +42,29 @@ int main(int argc, char** argv) {
         ofstream outfile(filename);
         outfile<<"# "<<eigenval[i]<<endl<<endl;
         for(int j=0;j<n;j++){
-            outfile<<r(j)<<"   "<<r(j)*eigenvec(i,j)<<endl;
+            outfile<<r(j)<<"   "<<eigenvec(i,j)<<endl;
         }
+        outfile<<(r(n-1)+h)<<"   "<<0<<endl;
         outfile.close();
     }
     
-   /*for(int i=0;i<n;i++){
-       // cout<<i<<" "<<fixed<<a(i,i)<<endl;
-        cout<<i<<" "<<eigen[i]<<endl;
-    }*/
+    cout<<endl;
+    for(int i=0;i<3;i++){
+        cout<<fixed<<i<<" "<<eigenval[i]<<endl;
+    }
+    
+/*    //uncomment to use armadillo
+    clock_t start, end;
+    initialize(n,h,a,r,v,interact,wr);
+    vec eigval;
+    mat eigvec;
+    
+    start=clock();
+    eig_sym(eigval,eigvec,a);
+    end=clock();
+    
+    cout<<scientific<<"CPU TIME (sec) : "<<((double)end-(double)start)/CLOCKS_PER_SEC<<endl;
+    */
 
     return 0;
 }

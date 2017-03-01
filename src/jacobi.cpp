@@ -13,7 +13,7 @@
 // performs jacobi algorithm
 // to find eigenvalues/vectors
 int jacobi(int n, int interact, double conv, double wr,mat& a, vec& r, mat& v) {
-    cout.precision(4);
+    cout.precision(5);
     double aip=0, aiq=0, vpi=0, vqi=0;
     double tau=0, t=0, s=0, c=0;//tan(theta), sin(theta), cos(theta)    
     int count=1;                //count of iterations
@@ -65,8 +65,10 @@ int jacobi(int n, int interact, double conv, double wr,mat& a, vec& r, mat& v) {
             //vqi=v(q,i);
             vpi=v(i,p);
             vqi=v(i,q);
-            v(p,i)=c*vpi-s*vqi;
-            v(q,i)=c*vqi+s*vpi;
+            //v(p,i)=c*vpi-s*vqi;
+           // v(q,i)=c*vqi+s*vpi;
+            v(i,p)=c*vpi-s*vqi;
+            v(i,q)=c*vqi+s*vpi;
         }
         a(p,p)=app*c*c-2*apq*c*s+aqq*s*s;
         a(q,q)=app*s*s+2*apq*c*s+aqq*c*c;
@@ -98,7 +100,7 @@ mat get_eigenvecs(mat a, mat v, int n){
         for(int j=0;j<n;j++){
             if(a(j,j)==eigenvals[i]){
                 for(int k=0;k<n;k++){
-                      vecs(i,k)=v(j,k);
+                      vecs(i,k)=v(k,j);
                 }
              }
          }
@@ -132,7 +134,7 @@ void initialize(int n, double h, mat& a, vec& r, mat& v,int interact,double wr){
                 v(i,j)=1;
             }
             else if (i==j && interact==1){
-                a(i,j)=2/(h*h)+wr*wr+1/(r(i)*r(i));
+                a(i,j)=2/(h*h)+wr*wr*r(i)*r(i)+1/r(i);
                 v(i,j)=1;
             }
             else if (i==j+1 or i==j-1){
@@ -176,8 +178,8 @@ void print_vals(mat A, mat v,int n,double conv){
     for (int i=0;i<n;i++){
         cout<<"v"<<i<<": ";
         for (int j=0;j<n;j++){
-            if(abs(v(i,j))>conv)
-                cout<<fixed<<v(i,j)<<" ";
+            if(abs(v(j,i))>conv)
+                cout<<fixed<<v(j,i)<<" ";
             else cout<<"0.000 ";
         }
         cout<<endl;
