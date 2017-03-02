@@ -37,19 +37,110 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{introduction}
 \label{intro}
+For a single electron in a harmonic oscillator potential, the radial Schr{\"o}dinger equation is given by:
+\begin{gather}
+\frac{\hbar}{2m}\left(\frac{1}{r^2}\frac{d}{dr}r^2\frac{d}{dr}-\frac{\ell(\ell+1)}{r^2}\right)R_n(r) \notag \\
++\frac{1}{2}m\omega^2r^2 R_n(r)=E_{n\ell}R_n(r)
+\end{gather}
+where $R_n(r)$ are the radial wave functions, $\omega$ is the oscillator frequency, and $E_{n\ell}$ is the energy for the given quantum numbers:
+\begin{equation}
+E_{n\ell}=\hbar\omega\left(2n+\ell+\frac{3}{2}\right) \quad n,\ell = 0,1,2...
+\end{equation}
 
+In this work we will focus on $\ell=0$. Then making the substitution $u_n(r)=rR_n(r)$ and $\rho=\alpha/r$ where $\alpha^4=\hbar^2/mk$ and $k=m\omega^2$ gives:
+\begin{equation}
+-\frac{d^2}{d\rho^2}u_n(\rho)+\rho^2u_n(\rho)=\frac{2m\alpha}{\hbar^2}E_{n}u_n(\rho).
+\end{equation}
+Simplifying further, we can introduce the variable $\lambda$ such that:
+\begin{equation}
+-\frac{d^2}{d\rho^2}u_n(\rho)+\rho^2u_n(\rho)=\lambda u_n(\rho).
+\end{equation}
+This equation can be solved analytically to give the eigenvalues $\lambda_0=3$, $\lambda_0=7$, and $\lambda_2=11$.
 
-%\begin{figure*}[t]
-%\includegraphics[scale=0.2]{algorithm.jpg}
-%\caption{Graphical representation of forward elimination algorithm based on~\cite{graph} for (a) the first iteration, (b) the second iteration, and (c) the final iteration.}
-%\label{algorithm}
-%\end{figure*}
+If rather than one electron in the harmonic oscillator well there are two which are non-interacting, then Equation 1 becomes:
+\begin{gather}
+\left(-\frac{\hbar^2}{2m}\frac{d^2}{dr_1^2}-\frac{\hbar^2}{2m}\frac{d^2}{dr_2^2}+\frac{1}{2}kr_1^2 +\frac{1}{2}kr_2^2 \right)u_n(r_1,r_2) \notag \\
+= E_n^{(2)}u_n(r_1,r_2)
+\end{gather}
+where $u_n(r_1,r_2)$ is a two-body wave function and $E_n^{(2)}$ is the two-electron energy. We introduce new coordinates, \textbf{r} and \textbf{R}, defined by:
+\begin{gather}
+\mathbf{r}=\mathbf{r_1}-\mathbf{r_2} \\
+\mathbf{R}=\frac{1}{2}\left(\mathbf{r_1}+\mathbf{r_2}\right) 
+\end{gather}
+where \textbf{r} is the relative coordinate and \textbf{R} is the relative center-of-mass coordinate. This simplifies Equation 5 to:
+\begin{gather}
+\left(-\frac{\hbar^2}{m}\frac{d^2}{dr^2}-\frac{h^2}{4m}\frac{d^2}{dR^2} + \frac{1}{4}kr^2+kR^2\right)u_n(r,R) \notag \\
+=E_n^{(2)}u_n(r,R)
+\end{gather}
+and allows for the both the wave function and the energy to be written in terms of a relative wave function and energy, $\psi(r)$ and $E_r$, and a center-of-mass wave function and energy, $\phi(R)$ and $E_R$:
+\begin{gather}
+u(r,R)=\psi(r)\phi(R) \\
+E^{(2)}=E_r+E_R.
+\end{gather}
+
+This change of variables proves even more useful though when a repulsive Coulomb interaction is included as:
+\begin{equation}
+V(r_2,r_2)=\frac{\beta e^2}{|\mathbf{r}_1-\mathbf{r}_2|}=\frac{\beta e^2}{r}
+\end{equation}
+where $\beta e^2$ = 1.44 eVnm. As this potential only depends on the relative coordinate, we can look exclusively at the Schr{\"o}dinger equation for the relative wave function:
+\begin{equation}
+\left(-\frac{h^2}{m}\frac{d^2}{dr^2}+\frac{1}{4}kr^2+\frac{\beta e^2}{r}\right)\psi(r)=E_r\psi(r).
+\end{equation}
+
+Again we can make the substitution $\rho=r/\alpha$ where now $\alpha=\hbar^2/m\beta e^2$. In addition, we introduce the frequency $\omega_r=mk\alpha^4/4\hbar^2$, which reflects the strength of the oscillator potential, and the variable $\lambda = m\alpha^2E_r/\hbar^2$. Equation 12 then becomes:
+\begin{equation}
+-\frac{d^2}{d\rho^2}\psi(\rho)+w_r^2\rho^2\psi(\rho)+\frac{1}{\rho}=\lambda\psi(\rho).
+\end{equation}
+This equation has been solved analytically for some values of $\omega_r$ in~\cite{interact}. Of specific interest in this work is the case $\omega_r=0.05$, where the ground state eigenvalue is given by $\lambda=0.35$.
+
+In this work we implement the Jacobi algorithm to solve the eigenvalue problems described above and study the performance characteristics and numerical accuracy for different grid and step sizes. In addition, we investigate the influence of the frequency $w_r$ on the shape of the wave functions in the interacting case. In Section~\ref{methods}, the implementation of the algorithm is described. In Section~\ref{results} the performance and accuracy of the code are analyzed. Finally, in Section~\ref{conc} we give a summary and our conclusions.
 
 \section{methods}
 \label{methods}
 
 \section{results}
 \label{results}
+\begin{figure}[h]
+\includegraphics[scale=0.33]{error_pmax.pdf}
+\caption{error asa function of $\rho_{max}$}
+\label{algorithm}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.33]{N_time2.pdf}
+\caption{time as a function of matrix dimension (N)}
+\label{algorithm}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.33]{N_trans.pdf}
+\caption{number of rotations as a function of matrix dimension (N)}
+\label{algorithm}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.33]{wf_01.pdf}
+\caption{$|u(\rho)|^2$ for $w_r = 0.01$}
+\label{algorithm}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.33]{wf_05.pdf}
+\caption{$|u(\rho)|^2$ for $w_r = 0.05$}
+\label{algorithm}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.33]{wf_1.pdf}
+\caption{$|u(\rho)|^2$ for $w_r = 1.0$}
+\label{algorithm}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=0.33]{wf_5.pdf}
+\caption{$|u(\rho)|^2$ for $w_r = 5.0$}
+\label{algorithm}
+\end{figure}
 
 %\begin{table}[b]
 %\centering
