@@ -97,12 +97,73 @@ In this work we implement the Jacobi algorithm to solve the eigenvalue problems 
 
 \section{methods}
 \label{methods}
+We first start by discretizing the functions in Equations 4 and 13 and approximating the derivatives as:
+\begin{equation}
+u''=\frac{u(\rho+h)-2u(\rho)+u(\rho-h)}{h^2}+O(h^2)
+\end{equation}
+where h is the step size. Realistically, the wave functions should be defined from $\rho=[0,\infty)$, however, numerically we define a minimum value, $\rho_0=0$, and a maximum value, $\rho_{max}$, which will determine the step size for a given number of mesh points, N, as:
+\begin{equation}
+h=\frac{\rho_{max}-\rho_0}{N}
+\end{equation}
+
+Using Equation 14, Equations 4 and 13 can be written as:
+\begin{equation}
+\left(\frac{2}{h^2}+V_i\right)u_i-\frac{1}{h^2}u_{i-1}-\frac{1}{h^2}u_{i+1}=\lambda u_i
+\end{equation}
+where $V_i$ is either $\rho^2$ for the non-interacting case, or $\omega_r^2\rho^2+1/\rho$ for the interacting case. The above equation is an eigenvalue problem that can be written in matrix form as:
+\begin{equation}
+\begin{bmatrix} \frac{2}{h^2}+V_1 & -\frac{1}{h^2} &0 \\ -\frac{1}{h^2}  & \frac{2}{h^2}+V_2 &-\frac{1}{h^2} \\ 0  & -\frac{1}{h^2}  &\frac{2}{h^2}+V_N \end{bmatrix}
+\begin{bmatrix} u_0  \\ u_1\\ u_N \end{bmatrix}=\lambda \begin{bmatrix} u_0  \\ u_1\\ u_N \end{bmatrix}
+\label{matrix}
+\end{equation}
+
+As an N dimensional matrix will have N eigenvalues and eigenvectors, the grid size necessarily determines the number of eigenvalues that will be produced. As we are only interested in the ground state and first two excited states, the minimum matrix size we can use is N = 3.
+
+To begin the Jacobi algorithm we implement the vectors, $v_i$, and matrix, $\hat{a}$, using the Armadillo library~\cite{armadillo}. The main premise is to diagonalize the matrix via repeated unitary transformations, given by $\hat{a}'=\hat{S}^T\hat{a}\hat{S}$, which take the largest non-diagonal matrix element to zero each iteration. This process continues until all off diagonal elements are less than the specified tolerance and thus are essentially zero. Once the diagonalization is complete, the eigenvalues are simply the values left on the diagonal.
+
+For the eigenvectors we choose as a starting point unit vectors given by:
+\begin{equation}
+v_0=\begin{bmatrix} 1  \\ 0\\ 0 \end{bmatrix}\quad v_1=\begin{bmatrix} 0  \\ 1\\ 0 \end{bmatrix}
+\quad v_N=\begin{bmatrix} 0  \\ 0\\ 1 \end{bmatrix}.
+\label{matrix}
+\end{equation}
+Then for each iteration in the diagonalization scheme, the eigenvectors will undergo the same unitary transformation as the matrix, namely $v_i'=\hat{S}v_i$. As the transformation is unitary, the orthogonality of the eigenvectors will be preserved.
+
+If the coordinates of the matrix element to be sent to zero are given by $(k,l)$, the nonzero matrix elements of the rotation matrix, $\hat{S}$, are given by:
+\begin{gather}
+S_{(k,l)}=-S_{(l,k)}=-sin(\theta) \notag \\
+S_{(k,k)}=S_{(l,l)}=cos(\theta) \notag \\
+S_{(i,i)}=1 \quad i\neq k, i\neq l.
+\end{gather}
+After the transformation, the updated matrix elements of $\hat{a}'$ will be given by:
+\begin{gather}
+a'_{(k,l)}= \left(a_{(k,k)}-a_{(l,l)}\right)cos(\theta)sin(\theta)+a_{(k,l)}\left(cos^2(\theta)-sin^2(\theta)\right)  \notag \\
+a'_{(k,k)}= a_{(k,k)}cos^2(\theta)-2a_{(k,l)}cos(\theta)sin(\theta)+a_{(l,l)}sin^2(\theta) \notag \\
+a'_{(l,l)}= a_{(l,l)}cos^2(\theta)+2a_{(k,l)}cos(\theta)sin(\theta)+a_{(k,k)}sin^2(\theta) \notag \\
+a'_{(i,k)}= a_{(i,k)}cos(\theta)-a_{(i,l)}sin(\theta) \quad i\neq k,l\notag \\
+a'_{(i,l)}= a_{(i,l)}cos(\theta)+a_{(i,k)}sin(\theta) \quad i\neq k,l 
+\end{gather}
+Since $a'_{(k,l)}\equiv0$, $sin(\theta)$ and $cos(\theta)$ are determined via the expression above as:
+\begin{gather}
+cot(2\theta)\equiv \tau =\frac{a_{(l,l)}-a_{(k,k)}}{2a_{(k,l)}} \\
+tan(\theta)=-\tau \pm \sqrt{1+\tau^2} \\
+cos(\theta)=\frac{1}{\sqrt{1+tan^2(\theta)}} \\
+sin(\theta) = tan(\theta)cos(\theta) 
+\end{gather}
+and the matrix elements are updated accordingly.
+
+To determine the accuracy of our solutions, we define the average error as the average of the percentage differences of the first three energy eigenvalues calculated via the Jacobi algorithm, $\lambda_n^j$, as compared to their exact values, $\lambda_n$:
+\begin{equation}
+\epsilon_{avg}=\frac{1}{3}\left(\frac{|\lambda_0^{j}-\lambda_0|}{\lambda_0}
++\frac{|\lambda_1^{j}-\lambda_1|}{\lambda_1} +\frac{|\lambda_2^{j}-\lambda_2|}{\lambda_2} \right)
+\end{equation}
 
 \section{results}
 \label{results}
+
 \begin{figure}[h]
 \includegraphics[scale=0.33]{error_pmax.pdf}
-\caption{error asa function of $\rho_{max}$}
+\caption{error as a function of $\rho_{max}$}
 \label{algorithm}
 \end{figure}
 
@@ -112,31 +173,31 @@ In this work we implement the Jacobi algorithm to solve the eigenvalue problems 
 \label{algorithm}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[t]
 \includegraphics[scale=0.33]{N_trans.pdf}
 \caption{number of rotations as a function of matrix dimension (N)}
 \label{algorithm}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[t]
 \includegraphics[scale=0.33]{wf_01.pdf}
 \caption{$|u(\rho)|^2$ for $w_r = 0.01$}
 \label{algorithm}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[b]
 \includegraphics[scale=0.33]{wf_05.pdf}
 \caption{$|u(\rho)|^2$ for $w_r = 0.05$}
 \label{algorithm}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[t]
 \includegraphics[scale=0.33]{wf_1.pdf}
 \caption{$|u(\rho)|^2$ for $w_r = 1.0$}
 \label{algorithm}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[b]
 \includegraphics[scale=0.33]{wf_5.pdf}
 \caption{$|u(\rho)|^2$ for $w_r = 5.0$}
 \label{algorithm}
