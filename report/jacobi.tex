@@ -159,65 +159,84 @@ To determine the accuracy of our solutions, we define the average error as the a
 \end{equation}
 
 \section{results}
+In the following subsections we describe the results obtained first without the Coulomb interaction and then with it included. We discuss the numerical accuracy and performance of the methods and show the radial probability distributions for the interacting case.
 \label{results}
-
-\begin{figure}[h]
-\includegraphics[scale=0.33]{error_pmax.pdf}
-\caption{error as a function of $\rho_{max}$}
-\label{algorithm}
-\end{figure}
-
-\begin{figure}[h]
-\includegraphics[scale=0.33]{N_time2.pdf}
-\caption{time as a function of matrix dimension (N)}
-\label{algorithm}
-\end{figure}
+\subsection{Non-interacting Case}
+We first implement the Jacobi algorithm with only the harmonic oscillator potential. As stated in Section~\ref{intro} this yields eigenvalues of $\lambda_0=3$, $\lambda_0=7$, and $\lambda_2=11$. For a matrix dimension of N = 100, we tested the accuracy of the calculated eigenvalues for varying $\rho_{max}$, and show the relative percent error in Figure~\ref{err}. From this we see the most accurate solution is for $\rho_{max}=5$. The resulting eigenvalues are summarized in Table~\ref{eigen}, while the error is small for these parameters, the desired level of accuracy is to have agreement to four digits past the decimal. This is not achieved until a matrix size of $N=400$ is used.
 
 \begin{figure}[t]
+\includegraphics[scale=0.33]{error_pmax.pdf}
+\caption{Relative average error in $\lambda_n$ as a function of $\rho_{max}$}
+\label{err}
+\end{figure}
+
+In addition, we test the performance of the code via the CPU time to solution for varying matrix dimension. In Figure~\ref{arma}, we compare the performance of our Jacobi algorithm (black solid curve) to that of a more sophisticated algorithm (red dashed curve) from the Armadillo library~\cite{armadillo}. 
+
+In general, one would expect the Armadillo algorithm to be faster regardless of matrix size; however, for very small matrix dimension, the Jacobi algorithm is faster. This is likely because the value of $\rho_{max}$ was kept constant and only the matrix dimension was changed. This means that for the small matrix sizes, the step size was larger, which means the off-diagonal matrix elements (which go like $1/h^2$) are smaller. For the values plotted in Figure~\ref{arma}, $\rho_{max}$ = 10, which means for matrices under $N=10$ the off diagonal elements would be less than 1, while for matrices around $N=100$ the off diagonal elements would be closer to 100. This means that not only do there need to be more iterations for larger matrices because of the %are %more values, but the values will also be much further from zero. 
+
+\begin{table}[b]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+$\lambda_n$&Jacobi & Analytic & Jacobi & Analytic\\
+\hline
+$\lambda_0$&2.9992&3&0.3499&0.35\\
+$\lambda_1$&6.9961&7&0.5325&N/A\\
+$\lambda_2$&10.9906&11&0.7210&N/A\\
+\hline
+\end{tabular}
+\caption{Comparison of eigenvalues for the analytic methods and the Jacobi method. For the non-interacting case N = 100 and $\rho_{max}$=5. For the interacting case N = 200$\rho_{max}=20$ and $\omega_r$ = 0.05. Analytic values for the interacting case are from~\cite{interact}.}
+\label{eigen}
+\end{table}
+
+\begin{figure}[t]
+\includegraphics[scale=0.33]{N_time2.pdf}
+\caption{Computation time as a function of matrix dimension.}
+\label{arma}
+\end{figure}
+
+\noindent larger number of values, but the values will also be much further from zero. 
+
+This point is further illustrated in Figure~\ref{trans}, which shows the number of Jacobi rotations needed for the off diagonal elements to be less than 0.001. The black solid line corresponds to the results from the Jacobi algorithm, and the red dashed line corresponds to the predicted behavior. We expect the number of iterations should scale as $N^2$ because the number of matrix elements to transform scales as $N^2$. For large matrices the results agree well with the prediction, but for small matrices the Jacobi algorithm needs less iterations than expected. Again, this is likely due to the small size of the off diagonal matrix elements for small matrix sizes.
+
+\begin{figure}[b]
 \includegraphics[scale=0.33]{N_trans.pdf}
-\caption{number of rotations as a function of matrix dimension (N)}
-\label{algorithm}
+\caption{Number of Jacobi rotations necessary for convergence as a function of matrix dimension.}
+\label{trans}
 \end{figure}
 
 \begin{figure}[t]
 \includegraphics[scale=0.33]{wf_01.pdf}
-\caption{$|u(\rho)|^2$ for $w_r = 0.01$}
-\label{algorithm}
+\caption{$|\psi(\rho)|^2$ for $w_r = 0.01$}
+\label{wf_01}
 \end{figure}
+
+\subsection{Interacting Case}
+We now implement the Jacobi algorithm with the harmonic oscillator potential and a Coulomb interaction potential. First, we use the oscillator frequency of $\omega_r=0.05$ from~\cite{interact} and compare their eigenvalues to those calculated with the Jacobi algorithm in Table~\ref{eigen}. Again, there is good agreement with the analytic solution.
+
+In addition, we compare the probability distribution of the wave functions, $|\psi_n(\rho)|^2$, for varying $\omega_r$ in Figures~\ref{wf_01}-\ref{wf_5}. In all figures the black solid line corresponds to the ground state, and the red dashed (blue dotted) line corresponds to the first (second) excited state. Figure~\ref{wf_01} shows the distribution for $\omega_r$ = 0.01, Figure~\ref{wf_05} for $\omega_r = 0.05$, Figure~\ref{wf_1} for $\omega_r = 1.0$, and Figure~\ref{wf_5} for $\omega_r = 5.0$.
 
 \begin{figure}[b]
 \includegraphics[scale=0.33]{wf_05.pdf}
-\caption{$|u(\rho)|^2$ for $w_r = 0.05$}
-\label{algorithm}
+\caption{$|\psi_n(\rho)|^2$ for $w_r = 0.05$}
+\label{wf_05}
 \end{figure}
 
 \begin{figure}[t]
 \includegraphics[scale=0.33]{wf_1.pdf}
-\caption{$|u(\rho)|^2$ for $w_r = 1.0$}
-\label{algorithm}
+\caption{$|\psi_n(\rho)|^2$ for $w_r = 1.0$}
+\label{wf_1}
 \end{figure}
+
+As $\omega_r$ represents the strength of the harmonic oscillator potential, as $\omega_r$ increases, there should be less space for the two electrons and thus the probability distribution should be peaked at smaller values of $\rho$. This is indeed the same behavior seen in Figures~\ref{wf_01}-\ref{wf_5} as the peak for the ground state probability distribution moves from roughly $\rho=20$ for $\omega_r=0.01$ to under 0.5 for $\omega_r=5.0$
+
+Finally, in Figure~\ref{wf_1} we show the ground state wave function probability distribution with no coulomb interaction (green dot-dashed line) for comparison. Here we can see that the inclusion of the Coulomb repulsion causes the probability distribution to be shifter to larger $\rho$ and more diffuse. This is to be expected as the Coulomb repulsion causes the the two electrons to be pushed away from one another.
 
 \begin{figure}[b]
 \includegraphics[scale=0.33]{wf_5.pdf}
-\caption{$|u(\rho)|^2$ for $w_r = 5.0$}
-\label{algorithm}
+\caption{$|\psi_n(\rho)|^2$ for $w_r = 5.0$}
+\label{wf_5}
 \end{figure}
-
-%\begin{table}[b]
-%\centering
-%\begin{tabular}{|c|c|}
-%\hline
-%Algorithm& FLOPs\\
-%\hline
-%General Gauss&$\frac{2}{3}n^3$\\
-%Tridiagonal matrix&$8n$\\
-%Specific tridiagonal&$6n$\\
-%LU  decomposition&$2n^2$\\
-%\hline
-%\end{tabular}
-%\caption{Comparison of number of FLOPs for each algorithm.}
-%\label{flop_table}
-%\end{table}
 
 \section{conclusions}
 \label{conc}
