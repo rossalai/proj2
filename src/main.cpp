@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     vec r(n);
     mat a = zeros<mat>(n,n);
     mat v = zeros<mat>(n,n);
-    double conv=0.0001,wr=0.05, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
+    double conv=0.0001,wr=5.0, pmin=0, pmax=10,h = (pmax-pmin)/(double(n));
     n=n-1;
     initialize(n,h,a,r,v,interact,wr);
     jacobi(n,interact,conv,wr,a,r,v);
@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
         filename+=".txt";
         ofstream outfile(filename);
         outfile<<"# "<<eigenval[i]<<endl<<endl;
+        outfile<<"0   0"<<endl;
         for(int j=0;j<n;j++){
             outfile<<r(j)<<"   "<<eigenvec(i,j)<<endl;
         }
