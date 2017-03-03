@@ -24,11 +24,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{abstract}
- \noindent {\bf Background:}% To solve a differential equation computationally the derivative is approximated and a system of linear equations is solved instead. Such systems can be solved via matrix equations and Gauss elimination. \\
-\\ {\bf Purpose:} %The goal of this work is to implement various Gauss elimination algorithms and study the accuracy and performance of each when applied to a system of equations which result from the Poisson equation with a given example from electromagnetism. \\
-\\ {\bf Method:} %We use a general Gauss elimination algorithm as well as two for tridiagonal matrixes and one which uses LU decomposition. We inspect the time to solution for varying matrix sizes and compare to the analytic solution to evaluate the accuracy of the algorithms. \\ 
-\\ {\bf Results:} %We find the most accurate matrix size is $10^5$ and the fastest algorithm for this matrix size is the tridiagonal algorithm. \\
- \\ {\bf Conclusions:} %Our results demonstrate the importance of choosing the right algorithm for the given physical situation.
+ \noindent {\bf Background:} Perhaps the most common potential used in quantum mechanics is that of the three dimensional harmonic oscillator. This is because there are analytic solutions which can easily be calculated. However, the introduction of an additional particle and a Coulomb interaction quickly makes the problem more difficult.
+ % To solve a differential equation computationally the derivative is approximated and a system of linear equations is solved instead. Such systems can be solved via matrix equations and Gauss elimination. \\
+\\ {\bf Purpose:} The goal of this work is to solve numerically the aforementioned problem. We aim to study the numerical accuracy and performance of the algorithm as well as determine the effect of different oscillator shapes on the final wave functions.
+%The goal of this work is to implement various Gauss elimination algorithms and study the accuracy and performance of each when applied to a system of equations which result from the Poisson equation with a given example from electromagnetism. \\
+\\ {\bf Method:} We approximate the derivatives in the Schr{\"o}dinger equation in order to cast the equations as a matrix eigenvalue problem and use the Jacobi rotation algorithm to calculate the eigenvalues and eigenvectors. In addition, we use a more sophisticated algorithm to compare computation time.
+%We use a general Gauss elimination algorithm as well as two for tridiagonal matrixes and one which uses LU decomposition. We inspect the time to solution for varying matrix sizes and compare to the analytic solution to evaluate the accuracy of the algorithms. \\ 
+\\ {\bf Results:} We find our calculated eigenvalues are consistent with analytical solutions for matrix sizes around $N=400$. In addition, we find the Jacobi algorithm is very inefficient, especially for the large matrix sizes needed for our desired accuracy.
+%We find the most accurate matrix size is $10^5$ and the fastest algorithm for this matrix size is the tridiagonal algorithm. \\
+ \\ {\bf Conclusions:} Our results demonstrate that the effect of including a Coulomb repulsion interaction is a more diffuse wave function as the electrons are repelled from one another. On the other hand, our results alse demonstrate that as the oscillator potential becomes stronger the electrons are forced closer to one another.
+ %Our results demonstrate the importance of choosing the right algorithm for the given physical situation.
 \end{abstract}
 
 
@@ -37,6 +42,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{introduction}
 \label{intro}
+There are a limited number of problems in advanced physics that can be solved analytically. For this reason, one of the most common problems encountered in undergraduate and graduate level quantum mechanics is that of a particle in a three dimensional harmonic oscillator potential, as it has analytic solutions. While the addition of another charged particle and a Coulomb interaction makes the problem more difficult, it can also be solved analytically with some considerable effort. It is the goal of this work to solve this problem numerically with high precision.
+
 For a single electron in a harmonic oscillator potential, the radial Schr{\"o}dinger equation is given by:
 \begin{gather}
 \frac{\hbar}{2m}\left(\frac{1}{r^2}\frac{d}{dr}r^2\frac{d}{dr}-\frac{\ell(\ell+1)}{r^2}\right)R_n(r) \notag \\
@@ -152,58 +159,41 @@ sin(\theta) = tan(\theta)cos(\theta)
 \end{gather}
 and the matrix elements are updated accordingly.
 
-To determine the accuracy of our solutions, we define the average error as the average of the percentage differences of the first three energy eigenvalues calculated via the Jacobi algorithm, $\lambda_n^j$, as compared to their exact values, $\lambda_n$:
-\begin{equation}
-\epsilon_{avg}=\frac{1}{3}\left(\frac{|\lambda_0^{j}-\lambda_0|}{\lambda_0}
-+\frac{|\lambda_1^{j}-\lambda_1|}{\lambda_1} +\frac{|\lambda_2^{j}-\lambda_2|}{\lambda_2} \right)
-\end{equation}
-
-\section{results}
-In the following subsections we describe the results obtained first without the Coulomb interaction and then with it included. We discuss the numerical accuracy and performance of the methods and show the radial probability distributions for the interacting case.
-\label{results}
-\subsection{Non-interacting Case}
-We first implement the Jacobi algorithm with only the harmonic oscillator potential. As stated in Section~\ref{intro} this yields eigenvalues of $\lambda_0=3$, $\lambda_0=7$, and $\lambda_2=11$. For a matrix dimension of N = 100, we tested the accuracy of the calculated eigenvalues for varying $\rho_{max}$, and show the relative percent error in Figure~\ref{err}. From this we see the most accurate solution is for $\rho_{max}=5$. The resulting eigenvalues are summarized in Table~\ref{eigen}, while the error is small for these parameters, the desired level of accuracy is to have agreement to four digits past the decimal. This is not achieved until a matrix size of $N=400$ is used.
-
 \begin{figure}[t]
 \includegraphics[scale=0.33]{error_pmax.pdf}
 \caption{Relative average error in $\lambda_n$ as a function of $\rho_{max}$}
 \label{err}
 \end{figure}
 
-In addition, we test the performance of the code via the CPU time to solution for varying matrix dimension. In Figure~\ref{arma}, we compare the performance of our Jacobi algorithm (black solid curve) to that of a more sophisticated algorithm (red dashed curve) from the Armadillo library~\cite{armadillo}. 
+To determine the accuracy of our solutions, we define the average error as the average of the relative differences of the first three eigenvalues calculated via the Jacobi algorithm, $\lambda_n^j$, as compared to their exact values, $\lambda_n$:
+\begin{equation}
+\epsilon_{avg}=\frac{1}{3}\left(\frac{|\lambda_0^{j}-\lambda_0|}{\lambda_0}
++\frac{|\lambda_1^{j}-\lambda_1|}{\lambda_1} +\frac{|\lambda_2^{j}-\lambda_2|}{\lambda_2} \right)
+\end{equation}
 
-In general, one would expect the Armadillo algorithm to be faster regardless of matrix size; however, for very small matrix dimension, the Jacobi algorithm is faster. This is likely because the value of $\rho_{max}$ was kept constant and only the matrix dimension was changed. This means that for the small matrix sizes, the step size was larger, which means the off-diagonal matrix elements (which go like $1/h^2$) are smaller. For the values plotted in Figure~\ref{arma}, $\rho_{max}$ = 10, which means for matrices under $N=10$ the off diagonal elements would be less than 1, while for matrices around $N=100$ the off diagonal elements would be closer to 100. This means that not only do there need to be more iterations for larger matrices because of the %are %more values, but the values will also be much further from zero. 
+\section{results}
+\label{results}
+In the following subsections we describe the results obtained both with and without the Coulomb interaction. We discuss the accuracy and performance of the methods and show the resulting probability distributions.
 
-\begin{table}[b]
-\centering
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-$\lambda_n$&Jacobi & Analytic & Jacobi & Analytic\\
-\hline
-$\lambda_0$&2.9992&3&0.3499&0.35\\
-$\lambda_1$&6.9961&7&0.5325&N/A\\
-$\lambda_2$&10.9906&11&0.7210&N/A\\
-\hline
-\end{tabular}
-\caption{Comparison of eigenvalues for the analytic methods and the Jacobi method. For the non-interacting case N = 100 and $\rho_{max}$=5. For the interacting case N = 200$\rho_{max}=20$ and $\omega_r$ = 0.05. Analytic values for the interacting case are from~\cite{interact}.}
-\label{eigen}
-\end{table}
-
-\begin{figure}[t]
-\includegraphics[scale=0.33]{N_time2.pdf}
+\begin{figure}[b]
+\includegraphics[scale=0.32]{N_time2.pdf}
 \caption{Computation time as a function of matrix dimension.}
 \label{arma}
 \end{figure}
 
-\noindent larger number of values, but the values will also be much further from zero. 
-
-This point is further illustrated in Figure~\ref{trans}, which shows the number of Jacobi rotations needed for the off diagonal elements to be less than 0.001. The black solid line corresponds to the results from the Jacobi algorithm, and the red dashed line corresponds to the predicted behavior. We expect the number of iterations should scale as $N^2$ because the number of matrix elements to transform scales as $N^2$. For large matrices the results agree well with the prediction, but for small matrices the Jacobi algorithm needs less iterations than expected. Again, this is likely due to the small size of the off diagonal matrix elements for small matrix sizes.
-
-\begin{figure}[b]
+\begin{figure}[t]
 \includegraphics[scale=0.33]{N_trans.pdf}
 \caption{Number of Jacobi rotations necessary for convergence as a function of matrix dimension.}
 \label{trans}
 \end{figure}
+
+\subsection{Non-interacting Case}
+We first implement the Jacobi algorithm with only the harmonic oscillator potential. %As stated in Section~\ref{intro} this yields eigenvalues of $\lambda_0=3$, $\lambda_0=7$, and $\lambda_2=11$. 
+For a matrix dimension of N = 100, we tested the accuracy of the calculated eigenvalues for varying $\rho_{max}$, and show the relative percent error in Figure~\ref{err}. From this we see the most accurate solution is for $\rho_{max}=5$. The resulting eigenvalues are summarized in Table~\ref{eigen}. While the error is small for these parameters, the desired level of accuracy is to have agreement to four digits past the decimal. This is not achieved until a matrix size of $N=400$ is used.
+
+In addition, we test the performance of the code via the time to solution for varying matrix dimension. In Figure~\ref{arma}, we compare the performance of our Jacobi algorithm (black solid curve) to that of a more sophisticated algorithm (red dashed curve) from the Armadillo library~\cite{armadillo}. In general, one would expect the Armadillo algorithm to be faster regardless of matrix size; however, for very small matrix dimension, the Jacobi algorithm is faster. This is likely because the value of $\rho_{max}$ was kept constant and only the matrix dimension was changed. This means that for the small matrix sizes, the step size was larger, which means the off-diagonal matrix elements (which go like $1/h^2$) are smaller. %For the values plotted in Figure~\ref{arma}, $\rho_{max}$ = 10, which means for matrices under $N=10$ the off diagonal elements would be less than 1, while for matrices around $N=100$ the off diagonal elements would be closer to 100. This means that not only do there need to be more iterations for larger matrices because of the %are %more values, but the values will also be much further from zero. 
+
+This point is further illustrated in Figure~\ref{trans}, which shows the number of rotations needed for the off diagonal elements to be less than 0.001. The black solid line corresponds to the results from the Jacobi algorithm, and the red dashed line corresponds to the predicted $N^2$ behavior which represents the number of matrix elements. For large matrices the results agree well with the prediction, but for small matrices the Jacobi algorithm needs less iterations than expected. Again, this is likely due to the small size of the off diagonal matrix elements for small matrix sizes.
 
 \begin{figure}[t]
 \includegraphics[scale=0.33]{wf_01.pdf}
@@ -238,8 +228,33 @@ Finally, in Figure~\ref{wf_1} we show the ground state wave function probability
 \label{wf_5}
 \end{figure}
 
+\begin{table}[t]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+$\lambda_n$&Jacobi & Analytic & Jacobi & Analytic\\
+\hline
+$\lambda_0$&2.9992&3&0.3499&0.35\\
+$\lambda_1$&6.9961&7&0.5325&N/A\\
+$\lambda_2$&10.9906&11&0.7210&N/A\\
+\hline
+\end{tabular}
+\caption{Comparison of eigenvalues for the analytic methods and the Jacobi method. For the non-interacting case N = 100 and $\rho_{max}$=5. For the interacting case N = 200$\rho_{max}=20$ and $\omega_r$ = 0.05. Analytic values for the interacting case are from~\cite{interact}.}
+\label{eigen}
+\end{table}
+
 \section{conclusions}
 \label{conc}
+
+In summary, the goal of this work was to calculate numerically the energies and wave functions corresponding to two electrons in a harmonic oscillator potential with a repulsive Coulomb interaction. The second derivative in the Schr{\"o}dinger equation is approximated using a three point formula, which turns the problem into a matrix eigenvalue problem that is solved via the Jacobi algorithm.
+
+The Jacobi algorithm is first analyzed without the Coulomb interaction to determine the numerical accuracy and performance. We found that in order to have agreement with analytic solutions for the first three eigenvalues up to four decimal places required a matrix size of roughly 400. However, we find that the Jacobi algorithm does not perform nearly as well as other more sophisticated algorithms, especially for the matrix sizes needed for the desired level of accuracy.
+
+Next, we include the Coulomb interaction and find that the resulting eigenvalues have good agreement with the analytic solutions given in~\cite{interact}. In addition, we plot the probability distributions for various harmonic oscillator strengths and find that as the potential is increased the electrons are forced closer together. Finally, we find that as expected, the addition of the Coulomb repulsion term causes the electrons to be forced further apart.
+
+There are a number of ways that our code can be improved upon, for example there are more sophisticated algorithms to calculate eigenvalues (such as Lanczo's method~\cite{lan}) which would likely prove to be more efficient. In addition, the Jacobi algorithm doesn't require that our matrix is already tridiagonal, so there are likely modifications or alternatives that could increase performance by taking advantage of the symmetries of the problem. Alternatively, while the Jacobi algorithm is not the most efficient, the use of parallelizations such as OpenMP as done in~\cite{cmse} could greatly improve the performance. Finally, we have constrained this work to $\ell=0$ and have disregarded the center of mass wave function in the analysis, both of which could add important insights to the problem. 
+
+Overall, we have confirmed our physical intuition of the role of the Coulomb interaction and solved a difficult analytic problem numerically with good precision but poor performance. These results illustrate the power of using numerical methods but also the importance of choosing the correct method for the given problem.
 
 \bibliography{jacobi}
 \end{document}
